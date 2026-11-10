@@ -1,0 +1,426 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<style>
+:root { color-scheme: light; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+body { margin: 0; }
+img { max-width: 100%; }
+</style>
+<title>엄마랑 가오슝</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@500&family=Noto+Sans+TC:wght@500;700&display=swap">
+<style>
+/* Layout: one narrow column for a phone, sticky day tabs, a timeline per day, full-screen taxi card overlay */
+:root {
+  --bg: #EEF3F6;
+  --surface: #FFFFFF;
+  --ink: #132630;
+  --muted: #586B76;
+  --line: #D6E0E6;
+  --harbor: #0D5C78;
+  --harbor-soft: #DCEBF1;
+  --sunset: #D9582B;
+  --sunset-soft: #FBE6DC;
+  --font-body: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --font-num: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
+  --font-zh: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0B151B; --surface: #12212A; --ink: #E4EDF1; --muted: #93A6B1; --line: #22343F;
+    --harbor: #5BB8D6; --harbor-soft: #15323F; --sunset: #F28A5F; --sunset-soft: #3A2219;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0B151B; --surface: #12212A; --ink: #E4EDF1; --muted: #93A6B1; --line: #22343F;
+  --harbor: #5BB8D6; --harbor-soft: #15323F; --sunset: #F28A5F; --sunset-soft: #3A2219;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--font-body); font-size: 15px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0 48px;
+}
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+.wrap { max-width: 620px; margin: 0 auto; }
+a { color: var(--harbor); }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--harbor); outline-offset: 2px; }
+
+header.top { padding-block: 22px 14px; }
+.eyebrow { font-size: 12px; letter-spacing: .08em; color: var(--muted); font-weight: 500; }
+h1 { font-size: 28px; line-height: 1.2; margin: 4px 0 6px; text-wrap: balance; letter-spacing: -.01em; }
+.status { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500;
+  background: var(--harbor-soft); color: var(--harbor); padding: 4px 10px; border-radius: 999px; }
+
+nav.tabs { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg);
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; padding-block: 8px 10px; border-bottom: 1px solid var(--line); }
+nav.tabs a { text-decoration: none; text-align: center; padding: 8px 4px; border-radius: 10px; color: var(--muted);
+  display: flex; flex-direction: column; line-height: 1.25; }
+nav.tabs a b { font-size: 14px; }
+nav.tabs a small { font-family: var(--font-num); font-size: 11px; }
+nav.tabs a[aria-current="page"] { background: var(--harbor); color: var(--bg); }
+
+section.view { padding-top: 18px; }
+.day-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 4px; }
+.day-head h2 { font-size: 21px; margin: 0; text-wrap: balance; }
+.day-head .date { font-family: var(--font-num); color: var(--muted); font-size: 13px; }
+.day-sub { color: var(--muted); font-size: 14px; margin: 0 0 16px; }
+
+ol.timeline { list-style: none; margin: 0; padding: 0; position: relative; }
+ol.timeline::before { content: ""; position: absolute; left: 52px; top: 8px; bottom: 8px; width: 2px; background: var(--line); }
+.stop { display: grid; grid-template-columns: 44px 1fr; gap: 0 20px; padding-block: 10px; position: relative; }
+.stop::after { content: ""; position: absolute; left: 48px; top: 17px; width: 10px; height: 10px; border-radius: 50%;
+  background: var(--surface); border: 2px solid var(--harbor); }
+.stop.sun::after { border-color: var(--sunset); background: var(--sunset); }
+.stop .t { font-family: var(--font-num); font-size: 13px; color: var(--muted); padding-top: 2px; font-variant-numeric: tabular-nums; }
+.stop .body { min-width: 0; }
+.stop h3 { font-size: 16px; margin: 0; line-height: 1.4; }
+.stop .zh { font-family: var(--font-zh); font-size: 13px; color: var(--muted); }
+.stop p { margin: 4px 0 0; font-size: 14px; color: var(--muted); }
+.stop.now .body { background: var(--sunset-soft); border-radius: 10px; padding: 8px 10px; margin: -8px -10px; }
+.stop.now .t { color: var(--sunset); font-weight: 700; }
+.now-tag { display: inline-block; font-size: 11px; font-weight: 700; color: var(--sunset); margin-left: 6px; letter-spacing: .04em; }
+.opt-tag { display: inline-block; font-size: 11px; font-weight: 700; color: var(--harbor); border: 1px solid var(--harbor);
+  border-radius: 6px; padding: 0 5px; margin-right: 6px; vertical-align: 2px; letter-spacing: .02em; }
+.stop.opt::after { border-style: dashed; }
+.actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.btn { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 500; padding: 5px 10px;
+  border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); text-decoration: none; cursor: pointer; }
+.btn.taxi { border-color: var(--harbor); color: var(--harbor); }
+
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; margin-top: 16px; }
+.panel h3 { margin: 0 0 8px; font-size: 15px; }
+.panel ul { margin: 0; padding-left: 18px; }
+.panel li { margin: 3px 0; font-size: 14px; }
+
+.info h2 { font-size: 18px; margin: 26px 0 10px; }
+.info h2:first-child { margin-top: 0; }
+.flight { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 8px; }
+.flight + .flight { border-top: 1px dashed var(--line); margin-top: 12px; padding-top: 12px; }
+.flight .code { grid-column: 1 / -1; font-size: 12px; color: var(--muted); font-weight: 500; }
+.flight .pt b { font-family: var(--font-num); font-size: 22px; display: block; font-variant-numeric: tabular-nums; }
+.flight .pt span { font-size: 13px; color: var(--muted); }
+.flight .pt:last-child { text-align: right; }
+.flight .arrow { color: var(--muted); font-size: 13px; text-align: center; }
+dl.kv { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; margin: 0; font-size: 14px; }
+dl.kv dt { color: var(--muted); }
+dl.kv dd { margin: 0; min-width: 0; }
+
+.places { display: grid; gap: 8px; }
+.place { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 12px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+.place div { min-width: 0; }
+.place b { font-size: 14px; display: block; }
+.place span { font-size: 13px; color: var(--muted); }
+.place .zh { font-family: var(--font-zh); }
+.place .btn { flex-shrink: 0; }
+
+.check label { display: flex; gap: 10px; align-items: center; padding: 6px 0; font-size: 14px; cursor: pointer; }
+.check input { width: 18px; height: 18px; accent-color: var(--harbor); }
+
+.phrases { display: grid; gap: 8px; }
+.phrase { text-align: left; width: 100%; padding: 10px 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; cursor: pointer; }
+.phrase b { font-family: var(--font-zh); font-size: 17px; display: block; }
+.phrase span { font-size: 13px; color: var(--muted); }
+
+/* Taxi card overlay */
+#card { position: fixed; inset: 0; z-index: 20; background: var(--surface); display: flex; flex-direction: column;
+  padding: calc(24px + env(safe-area-inset-top, 0px)) max(20px, env(safe-area-inset-right, 0px)) calc(24px + env(safe-area-inset-bottom, 0px)) max(20px, env(safe-area-inset-left, 0px)); }
+#card .lead { font-family: var(--font-zh); font-size: 20px; color: var(--muted); }
+#card .big { font-family: var(--font-zh); font-weight: 700; font-size: clamp(36px, 11vw, 64px); line-height: 1.2; margin: 14px 0; word-break: break-all; }
+#card .addr { font-family: var(--font-zh); font-size: 20px; }
+#card .ko { margin-top: 18px; color: var(--muted); font-size: 14px; }
+#card .close { margin-top: auto; align-self: stretch; padding: 14px; border-radius: 12px; border: 0; background: var(--harbor); color: var(--surface); font-size: 16px; font-weight: 700; cursor: pointer; }
+
+footer { margin-top: 32px; font-size: 12px; color: var(--muted); }
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <div class="eyebrow">KAOHSIUNG · 2026.11.13 – 11.15</div>
+    <h1>엄마랑 가오슝 2박 3일</h1>
+    <span class="status" id="status">2인 · 그랜드 하이라이 호텔</span>
+  </header>
+
+  <nav class="tabs" aria-label="일정">
+    <a href="#day1"><b>1일차</b><small>11.13 금</small></a>
+    <a href="#day2"><b>2일차</b><small>11.14 토</small></a>
+    <a href="#day3"><b>3일차</b><small>11.15 일</small></a>
+    <a href="#info"><b>정보</b><small>항공·장소</small></a>
+  </nav>
+
+  <main id="views"></main>
+
+  <footer>시간은 모두 대만 현지 시간이에요(한국보다 1시간 늦음). 택시 버튼을 누르면 기사님께 보여줄 중국어 카드가 열려요.</footer>
+</div>
+
+<div id="card" hidden role="dialog" aria-modal="true" aria-labelledby="card-big">
+  <div class="lead">請載我到這裡，謝謝</div>
+  <div class="big" id="card-big"></div>
+  <div class="addr" id="card-addr"></div>
+  <div class="ko" id="card-ko"></div>
+  <button class="close" id="card-close" type="button">닫기</button>
+</div>
+
+<script>
+const HOTEL = { zh: "漢來大飯店", addr: "高雄市前金區成功一路266號", ko: "그랜드 하이라이 호텔" };
+
+const DAYS = [
+  {
+    id: "day1", date: "2026-11-13", label: "11.13 금", title: "치진섬 노을",
+    sub: "도착하자마자 짐만 맡기고 바다 쪽으로 가요.",
+    stops: [
+      { t: "13:55", ko: "가오슝 공항 도착", zh: "高雄國際機場", memo: "입국 수속, 유심 개통. 공항 MRT역에서 이지카드 사서 충전" },
+      { t: "14:30", ko: "MRT 레드라인으로 중앙공원역", zh: "高雄國際機場站 → 中央公園站", memo: "6정거장, 약 12분, NT$30. 8분마다 와요", query: "高雄國際機場站 捷運" },
+      { t: "14:45", ko: "호텔까지 걷기", zh: "中央公園站 → 漢來大飯店", memo: "약 900m, 14분. 짐이 무거우면 역 앞에서 택시(기본요금 거리)", taxi: HOTEL },
+      { t: "15:00", ko: "호텔 체크인, 짐 맡기기", zh: HOTEL.zh },
+      { t: "15:05", opt: true, ko: "배고프면 호텔 10층 홍타오에서 볶음밥", zh: "紅陶上海湯包 · 漢來大飯店 10樓", memo: "한신백화점과 이어진 호텔 건물 10층. 15:35엔 나가야 해서, 먹으면 빙수는 건너뛰어도 OK" },
+      { t: "15:35", ko: "경전철로 구산 페리 선착장", zh: "光榮碼頭站 → 哈瑪星站", memo: "호텔에서 광룽마터우역까지 걷고, 경전철 타고 하마싱역에서 내려 선착장까지 걷기. 전체 약 26분, NT$20", query: "輕軌 光榮碼頭站 高雄", taxi: { zh: "鼓山輪渡站", ko: "구산 페리 선착장" } },
+      { t: "16:00", ko: "하이즈빙에서 빙수", zh: "海之冰", memo: "선착장 바로 앞, 양이 많아요" },
+      { t: "16:20", ko: "페리 타고 치진섬", zh: "旗津", memo: "배로 약 5분, 이지카드로 탑승" },
+      { t: "16:30", ko: "자전거 빌리기", zh: "旗津 腳踏車出租", memo: "선착장 나오면 바로 대여점들이 있어요. 신분증(여권) 필요할 수 있음. 엄마가 힘드시면 전동자전거나 2인용 사륜자전거로" },
+      { t: "16:40", ko: "자전거로 슝전 북문", zh: "雄鎮北門", memo: "선착장에서 북쪽으로 자전거 5분 정도" },
+      { t: "16:55", ko: "해안 자전거길 따라 남쪽으로", zh: "旗津海岸公園 · 彩虹教堂 · 星空隧道", memo: "바다 보며 평지 라이딩. 무지개 교회, 별빛 터널에서 사진" },
+      { t: "17:15", ko: "치진 해변에서 노을", zh: "旗津海水浴場", memo: "11월 해 지는 시간 17:15쯤", sun: true },
+      { t: "17:45", ko: "자전거 반납", zh: "旗津 腳踏車出租", memo: "어두워지기 전에 반납하기" },
+      { t: "18:00", ko: "페리 타고 돌아오기", zh: "旗津輪渡站 → 鼓山" },
+      { t: "18:10", ko: "경전철로 훠궈집", zh: "哈瑪星站 → 文武聖殿站", memo: "선착장에서 하마싱역까지 걸어서 10분, 경전철 3분, 원우성뎬역에서 내려 식당까지 걷기. 전체 약 21분", query: "輕軌 哈瑪星站 高雄" },
+      { t: "18:35", ko: "훠궈 저녁: 텐텐샤차 훠궈", zh: "天天沙茶火鍋", memo: "금요일 저녁 17:00~22:00 영업, 한국어 메뉴 설명 있음. 수·목 휴무. 대안: 호텔 근처 汕頭泉成沙茶火鍋(11:00~01:00)", query: "天天沙茶火鍋 高雄市鹽埕區七賢三路240號", taxi: { zh: "天天沙茶火鍋", addr: "高雄市鹽埕區七賢三路240號", ko: "텐텐샤차 훠궈" } },
+      { t: "20:30", ko: "호텔로 돌아오기", zh: "文武聖殿站 → 光榮碼頭站", memo: "경전철을 반대 방향으로 타고 광룽마터우역에서 내려 걷기. 피곤하면 택시 약 10분", taxi: HOTEL }
+    ],
+    notes: { h: "1일차 메모", items: ["노을이 핵심이라 16:30까지는 치진섬에 도착하기", "MRT·경전철·페리 모두 이지카드 하나로 타요. 공항에서 넉넉히 충전하기", "경전철은 순환선이라, 탈 때 방향(정방향·역방향) 확인하기", "자전거 대여점에서 여권을 맡기라고 할 수 있어요", "11월 저녁은 바닷바람이 있어서 얇은 겉옷 챙기기"] }
+  },
+  {
+    id: "day2", date: "2026-11-14", label: "11.14 토", title: "불광산과 리우허 야시장",
+    sub: "오전에 불광산, 오후엔 쉬고, 저녁엔 야시장과 강변.",
+    stops: [
+      { t: "08:00", ko: "호텔 조식", zh: HOTEL.zh },
+      { t: "09:00", ko: "가오슝역으로 이동", zh: "高雄車站", memo: "MRT 중앙공원역에서 2정거장, 택시 약 10분", taxi: { zh: "高雄車站", ko: "가오슝역" } },
+      { t: "09:30", ko: "E02 버스로 불광산", zh: "哈佛快線 E02", memo: "약 1시간. 배차와 돌아오는 막차 시간 확인하기" },
+      { t: "10:30", ko: "불광산 불타기념관", zh: "佛陀紀念館", memo: "관람 후 안에서 채식 점심", taxi: { zh: "佛陀紀念館", ko: "불광산 불타기념관" } },
+      { t: "14:00", ko: "E02로 돌아와 호텔에서 휴식", zh: HOTEL.zh, memo: "엄마 체력 충전 시간" },
+      { t: "17:30", ko: "메이리다오역 빛의 돔", zh: "美麗島站 光之穹頂", memo: "MRT 메이리다오역 안, 30분이면 충분해요" },
+      { t: "18:00", ko: "리우허 야시장에서 저녁", zh: "六合夜市", memo: "고구마볼, 파파야 우유, 해산물죽, 새우롤 조금씩 나눠 먹기", sun: true },
+      { t: "20:00", ko: "아이허(러브리버) 야경 산책", zh: "愛河", memo: "호텔 방향으로 걸으며 강변 구경", taxi: { zh: "愛河", ko: "아이허(러브리버)" } },
+      { t: "21:00", ko: "호텔로 돌아오기", zh: HOTEL.zh, taxi: HOTEL }
+    ],
+    notes: { h: "야시장 먹을거리", items: ["고구마볼(地瓜球)", "파파야 우유(木瓜牛奶)", "해산물죽(海產粥)", "새우롤, 해산물 구이", "디저트: 망고빙수나 두화(豆花)"] }
+  },
+  {
+    id: "day3", date: "2026-11-15", label: "11.15 일", title: "느긋한 아침과 보얼특구",
+    sub: "서두르지 않고 쉬다가, 보얼에서 구경하고 공항으로.",
+    stops: [
+      { t: "08:30", ko: "여유롭게 조식", zh: HOTEL.zh },
+      { t: "09:30", ko: "호텔 사우나", zh: HOTEL.zh },
+      { t: "10:45", ko: "체크아웃, 짐 맡기기", zh: HOTEL.zh },
+      { t: "11:00", ko: "보얼 예술특구", zh: "駁二藝術特區", memo: "성품서점(Eslite), SPPPP 소품샵", taxi: { zh: "駁二藝術特區", ko: "보얼 예술특구" } },
+      { t: "12:00", ko: "점심: 항원우육면 또는 Duck Zhen", zh: "港園牛肉麵 / 鴨肉珍", memo: "항원은 주문 먼저 하고 줄 서면 자리 알려줘요", query: "港園牛肉麵 高雄" },
+      { t: "12:50", ko: "호텔에서 짐 찾기", zh: HOTEL.zh, taxi: HOTEL },
+      { t: "13:15", ko: "택시로 공항", zh: "高雄國際機場 國際線", memo: "약 20분", taxi: { zh: "高雄國際機場 國際線", ko: "가오슝 공항 국제선" } },
+      { t: "13:45", ko: "탑승 수속", zh: "長榮航空 BR0172" },
+      { t: "15:45", ko: "BR0172 출발 → 인천 19:40", zh: "長榮航空 BR0172", sun: true }
+    ],
+    notes: { h: "출국 전에", items: ["기념품은 보얼이나 호텔 옆 한신백화점에서", "남은 이지카드 잔액은 편의점에서 쓰기", "공항 출발 2시간 전 도착 목표"] }
+  }
+];
+
+const PLACES = [
+  { h: "먹을 곳", items: [
+    { ko: "텐텐샤차 훠궈", zh: "天天沙茶火鍋", q: "天天沙茶火鍋 高雄市鹽埕區七賢三路240號", memo: "1일차 저녁 · 수·목 휴무" },
+    { ko: "산터우 취안청 샤차 훠궈", zh: "汕頭泉成沙茶火鍋 中山總店", q: "汕頭泉成沙茶火鍋 中山總店 高雄", memo: "훠궈 대안 · 80년 넘은 노포, 늦게까지 영업" },
+    { ko: "홍타오 상하이 탕바오", zh: "紅陶上海湯包", q: "紅陶上海湯包 漢來大飯店", memo: "호텔 10층 · 볶음밥, 탕바오" },
+    { ko: "항원우육면", zh: "港園牛肉麵", memo: "주문 먼저, 줄 서면 자리 안내" },
+    { ko: "Duck Zhen 오리고기밥", zh: "鴨肉珍", memo: "옌청 지역" },
+    { ko: "衣森辣麵 (Eason)", zh: "衣森辣麵", memo: "깔끔한 우육면" },
+    { ko: "후덕복", q: "후덕복 가오슝", memo: "국수" },
+    { ko: "단단버거 치엔진점", zh: "丹丹漢堡 前金店", memo: "남부식 패스트푸드" }
+  ]},
+  { h: "빙수·음료·간식", items: [
+    { ko: "하이즈빙", zh: "海之冰", memo: "구산 선착장 앞 빙수" },
+    { ko: "芒果好忙", zh: "芒果好忙", memo: "망고빙수" },
+    { ko: "가오슝 할머니 빙수", zh: "高雄婆婆冰", memo: "옛날 빙수집" },
+    { ko: "라오지앙 홍차 뉴나이", zh: "老江紅茶牛奶", memo: "한국어 메뉴판 · 누가크래커" },
+    { ko: "香茗茶行", zh: "香茗茶行", memo: "차 음료" },
+    { ko: "好好味 冰火菠蘿油", zh: "好好味冰火菠蘿油 瑞豐店", memo: "버터 파인애플빵" }
+  ]},
+  { h: "쇼핑", items: [
+    { ko: "써니힐", q: "써니힐 가오슝", memo: "회사 팀 돌릴 간식" },
+    { ko: "한신백화점", zh: "漢神百貨", memo: "호텔 바로 옆" },
+    { ko: "PX Mart 첸진 자창3점", q: "PX Mart Cianjin Zihciang 3rd", memo: "마트 간식" },
+    { ko: "PX Mart 링야 런즈점", q: "PX MART Lingya Renjhih", memo: "마트 간식" },
+    { ko: "성품서점 보얼점", zh: "誠品生活駁二店", memo: "보얼특구" },
+    { ko: "SPPPP", q: "SPPPP 駁二", memo: "보얼 소품샵" }
+  ]},
+  { h: "시간 나면", items: [
+    { ko: "용호탑 (연지담)", zh: "蓮池潭龍虎塔", memo: "호수 위 탑" },
+    { ko: "삼봉궁", zh: "三鳳宮", memo: "도심 사원" },
+    { ko: "다카오 영국영사관", zh: "打狗英國領事館文化園區", memo: "구산 언덕, 바다 전망" },
+    { ko: "Wufuqiaotou Park", q: "Wufuqiaotou Park Kaohsiung", memo: "호텔 근처 산책" }
+  ]}
+];
+
+const PHRASES = [
+  { zh: "請載我到這裡，謝謝", ko: "여기로 가주세요, 감사합니다" },
+  { zh: "多少錢？", ko: "얼마예요?" },
+  { zh: "不要香菜", ko: "고수 빼주세요" },
+  { zh: "兩位", ko: "두 명이에요" },
+  { zh: "可以刷卡嗎？", ko: "카드 되나요?" },
+  { zh: "洗手間在哪裡？", ko: "화장실 어디예요?" }
+];
+
+const CHECK = ["여권", "돼지코(110V 어댑터)", "대만달러 현금", "유심 / eSIM", "이지카드 충전", "얇은 겉옷", "엄마 상비약", "편한 운동화"];
+
+const mapUrl = q => "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(q);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+function taipeiNow() {
+  const parts = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Taipei", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).formatToParts(new Date());
+  const g = k => parts.find(p => p.type === k).value;
+  return { date: `${g("year")}-${g("month")}-${g("day")}`, time: `${g("hour")}:${g("minute")}` };
+}
+
+function renderDay(d, now) {
+  const isToday = now.date === d.date;
+  let nowIdx = -1;
+  if (isToday) d.stops.forEach((s, i) => { if (s.t <= now.time) nowIdx = i; });
+  const stops = d.stops.map((s, i) => {
+    const q = s.query || (s.zh && !s.zh.startsWith("長榮") && !s.zh.startsWith("哈佛") && !s.zh.includes("→") ? s.zh + " 高雄" : null);
+    const taxiBtn = s.taxi ? `<button class="btn taxi" type="button" data-zh="${esc(s.taxi.zh)}" data-addr="${esc(s.taxi.addr || "")}" data-ko="${esc(s.taxi.ko)}">택시 카드</button>` : "";
+    const mapBtn = q && s.zh !== HOTEL.zh ? `<a class="btn" href="${mapUrl(q)}" target="_blank" rel="noopener">지도</a>` : "";
+    const acts = taxiBtn || mapBtn ? `<div class="actions">${mapBtn}${taxiBtn}</div>` : "";
+    return `<li class="stop${s.sun ? " sun" : ""}${s.opt ? " opt" : ""}${i === nowIdx ? " now" : ""}">
+      <div class="t">${s.t}</div>
+      <div class="body">
+        <h3>${s.opt ? '<span class="opt-tag">선택</span>' : ""}${esc(s.ko)}${i === nowIdx ? '<span class="now-tag">지금</span>' : ""}</h3>
+        ${s.zh ? `<div class="zh">${esc(s.zh)}</div>` : ""}
+        ${s.memo ? `<p>${esc(s.memo)}</p>` : ""}
+        ${acts}
+      </div>
+    </li>`;
+  }).join("");
+  return `<section class="view" id="v-${d.id}" hidden>
+    <div class="day-head"><h2>${esc(d.title)}</h2><span class="date">${d.label}</span></div>
+    <p class="day-sub">${esc(d.sub)}</p>
+    <ol class="timeline">${stops}</ol>
+    <div class="panel"><h3>${esc(d.notes.h)}</h3><ul>${d.notes.items.map(x => `<li>${esc(x)}</li>`).join("")}</ul></div>
+  </section>`;
+}
+
+function loadChecks() { try { return JSON.parse(localStorage.getItem("khh-check") || "[]"); } catch (e) { return []; } }
+function saveChecks(v) { try { localStorage.setItem("khh-check", JSON.stringify(v)); } catch (e) {} }
+
+function renderInfo() {
+  const checked = loadChecks();
+  const places = PLACES.map(g => `<h2>${esc(g.h)}</h2><div class="places">${g.items.map(p => `
+    <div class="place"><div><b>${esc(p.ko)}</b><span>${p.zh ? `<span class="zh">${esc(p.zh)}</span> · ` : ""}${esc(p.memo)}</span></div>
+    <a class="btn" href="${mapUrl(p.q || p.zh + " 高雄")}" target="_blank" rel="noopener">지도</a></div>`).join("")}</div>`).join("");
+  return `<section class="view info" id="v-info" hidden>
+    <h2>항공편 · 에바항공</h2>
+    <div class="panel" style="margin-top:0">
+      <div class="flight"><div class="code">가는 편 · BR0145 · 11.13 금</div>
+        <div class="pt"><b>11:45</b><span>인천 ICN</span></div><div class="arrow">→</div><div class="pt"><b>13:55</b><span>가오슝 KHH</span></div></div>
+      <div class="flight"><div class="code">오는 편 · BR0172 · 11.15 일</div>
+        <div class="pt"><b>15:45</b><span>가오슝 KHH</span></div><div class="arrow">→</div><div class="pt"><b>19:40</b><span>인천 ICN</span></div></div>
+    </div>
+
+    <h2>숙소</h2>
+    <div class="panel" style="margin-top:0">
+      <dl class="kv">
+        <dt>호텔</dt><dd>그랜드 하이라이 호텔 가오슝</dd>
+        <dt>중국어</dt><dd style="font-family:var(--font-zh)">${HOTEL.zh}</dd>
+        <dt>주소</dt><dd style="font-family:var(--font-zh)">${HOTEL.addr}</dd>
+        <dt>숙박</dt><dd>11.13 금 – 11.15 일 · 2박</dd>
+      </dl>
+      <div class="actions">
+        <button class="btn taxi" type="button" data-zh="${HOTEL.zh}" data-addr="${HOTEL.addr}" data-ko="${HOTEL.ko}">택시 카드</button>
+        <a class="btn" href="${mapUrl("Grand Hi-Lai Hotel Kaohsiung")}" target="_blank" rel="noopener">지도</a>
+      </div>
+    </div>
+
+    <h2>저장해 둔 장소</h2>
+    <a class="btn" href="https://maps.app.goo.gl/TVhCjtMG1nF7SVXy8" target="_blank" rel="noopener">구글맵 '가오슝 2026' 목록 열기</a>
+    ${places}
+
+    <h2>바로 보여주는 중국어</h2>
+    <div class="phrases">${PHRASES.map(p => `<button class="phrase" type="button" data-zh="${esc(p.zh)}" data-addr="" data-ko="${esc(p.ko)}" data-plain="1"><b>${esc(p.zh)}</b><span>${esc(p.ko)}</span></button>`).join("")}</div>
+
+    <h2>챙길 것</h2>
+    <div class="panel check" style="margin-top:0">${CHECK.map((c, i) => `<label for="chk-${i}"><input type="checkbox" id="chk-${i}" data-i="${i}" ${checked.includes(i) ? "checked" : ""}>${esc(c)}</label>`).join("")}</div>
+
+    <h2>알아두면 좋은 것</h2>
+    <div class="panel" style="margin-top:0">
+      <dl class="kv">
+        <dt>시차</dt><dd>한국보다 1시간 늦어요</dd>
+        <dt>날씨</dt><dd>11월 20~28°C, 맑고 건조한 편</dd>
+        <dt>전압</dt><dd>110V, 11자 콘센트라 어댑터 필요</dd>
+        <dt>교통</dt><dd>MRT·페리·버스 모두 이지카드(悠遊卡)</dd>
+        <dt>긴급</dt><dd>경찰 110 · 구급·소방 119</dd>
+      </dl>
+    </div>
+  </section>`;
+}
+
+const views = document.getElementById("views");
+const now = taipeiNow();
+views.innerHTML = DAYS.map(d => renderDay(d, now)).join("") + renderInfo();
+
+const status = document.getElementById("status");
+const today = DAYS.findIndex(d => d.date === now.date);
+if (today >= 0) status.textContent = `오늘은 여행 ${today + 1}일차`;
+else if (now.date < DAYS[0].date) {
+  const diff = Math.round((new Date(DAYS[0].date) - new Date(now.date)) / 86400000);
+  status.textContent = `출발까지 D-${diff}`;
+}
+
+const VALID = ["day1", "day2", "day3", "info"];
+function show() {
+  let id = location.hash.slice(1);
+  if (!VALID.includes(id)) id = today >= 0 ? DAYS[today].id : "day1";
+  VALID.forEach(v => { document.getElementById("v-" + v).hidden = v !== id; });
+  document.querySelectorAll("nav.tabs a").forEach(a => {
+    if (a.getAttribute("href") === "#" + id) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
+  });
+}
+window.addEventListener("hashchange", () => { show(); window.scrollTo(0, 0); });
+show();
+
+const card = document.getElementById("card");
+let lastFocus = null;
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-zh]");
+  if (!b) return;
+  lastFocus = b;
+  const plain = b.dataset.plain === "1";
+  card.querySelector(".lead").hidden = plain;
+  document.getElementById("card-big").textContent = b.dataset.zh;
+  document.getElementById("card-addr").textContent = b.dataset.addr;
+  document.getElementById("card-ko").textContent = b.dataset.ko;
+  card.hidden = false;
+  document.getElementById("card-close").focus();
+});
+function closeCard() { card.hidden = true; if (lastFocus) lastFocus.focus(); }
+document.getElementById("card-close").addEventListener("click", closeCard);
+document.addEventListener("keydown", e => { if (e.key === "Escape" && !card.hidden) closeCard(); });
+
+document.addEventListener("change", e => {
+  if (!e.target.matches(".check input")) return;
+  const v = [...document.querySelectorAll(".check input:checked")].map(x => +x.dataset.i);
+  saveChecks(v);
+});
+</script>
+</body>
+</html>
